@@ -29,14 +29,14 @@ class HomeMonitoringControllingProjectController < ApplicationController
                                           FROM issue_statuses where id in
                                           (SELECT new_status_id as issues FROM workflows where role_id in
                                           (SELECT DISTINCT role_id FROM member_roles where member_id in
-                                          (SELECT DISTINCT id FROM members where project_id in (#{stringSqlProjectsSubPorjects})))
+                                          (SELECT DISTINCT id FROM members where project_id in (#{stringSqlProjectsSubProjects})))
                                           AND tracker_id in
-                                          (SELECT DISTINCT tracker_id FROM projects_trackers where project_id in (#{stringSqlProjectsSubPorjects}))
+                                          (SELECT DISTINCT tracker_id FROM projects_trackers where project_id in (#{stringSqlProjectsSubProjects}))
                                           UNION SELECT old_status_id FROM workflows where role_id in
                                           (SELECT DISTINCT role_id FROM member_roles where member_id in
-                                          (SELECT DISTINCT id FROM members where project_id in (#{stringSqlProjectsSubPorjects})))
+                                          (SELECT DISTINCT id FROM members where project_id in (#{stringSqlProjectsSubProjects})))
                                           AND tracker_id in
-                                          (SELECT DISTINCT tracker_id FROM projects_trackers where project_id in (#{stringSqlProjectsSubPorjects})));")
+                                          (SELECT DISTINCT tracker_id FROM projects_trackers where project_id in (#{stringSqlProjectsSubProjects})));")
                                           
 
     #get management issues by main project
