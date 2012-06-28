@@ -26,7 +26,18 @@ class HomeMonitoringControllingProjectController < ApplicationController
                                           (SELECT COUNT(1) FROM issues where project_id in (#{stringSqlProjectsSubProjects})))*100 as percent,
                                           (SELECT COUNT(1) FROM issues where project_id in (#{stringSqlProjectsSubProjects}) and status_id = issue_statuses.id)
                                           AS totalissues
-                                          FROM issue_statuses;")
+                                          FROM issue_statuses where id in
+                                          (SELECT new_status_id as issues FROM workflows where role_id in
+                                          (SELECT DISTINCT role_id FROM member_roles where member_id in
+                                          (SELECT DISTINCT id FROM members where project_id in (#{stringSqlProjectsSubPorjects})))
+                                          AND tracker_id in
+                                          (SELECT DISTINCT tracker_id FROM projects_trackers where project_id in (#{stringSqlProjectsSubPorjects}))
+                                          UNION SELECT old_status_id FROM workflows where role_id in
+                                          (SELECT DISTINCT role_id FROM member_roles where member_id in
+                                          (SELECT DISTINCT id FROM members where project_id in (#{stringSqlProjectsSubPorjects})))
+                                          AND tracker_id in
+                                          (SELECT DISTINCT tracker_id FROM projects_trackers where project_id in (#{stringSqlProjectsSubPorjects})));")
+                                          
 
     #get management issues by main project
     @managementissues = Issue.find_by_sql("select 1 as id, '#{t :manageable_label}' as typemanagement, count(1) as totalissues
