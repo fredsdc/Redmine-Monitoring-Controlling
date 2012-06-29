@@ -15,16 +15,33 @@ class McHumanResourceMgmtProjectController < ApplicationController
     #get projects and sub projects
     stringSqlProjectsSubProjects = tool.return_ids(@project.id)    
 
-    @statusesByAssigneds = Issue.find_by_sql("select assigned_to_id, (select firstname from users where id = assigned_to_id) as assigned_name,
-                                              issue_statuses.id, issue_statuses.name, 
-                                         	    (select COUNT(1) 
-                                               from issues i 
-                                               where i.project_id in (#{stringSqlProjectsSubProjects})
-                                               and ((i.assigned_to_id = issues.assigned_to_id and i.assigned_to_id is not null)or(i.assigned_to_id is null and issues.assigned_to_id is null)) and i.status_id = issue_statuses.id) as totalassignedbystatuses
-                                               from issues, issue_statuses  
-                                               where project_id in (#{stringSqlProjectsSubProjects}) 
-                                               group by assigned_to_id, assigned_name, issue_statuses.id, issue_statuses.name
-                                               order by 2,3;")    
+    @statusesByAssigneds = Issue.find_by_sql("SELECT assigned_to_id,
+                                                (SELECT firstname
+                                                FROM users WHERE id = assigned_to_id) AS assigned_name,
+                                                issue_statuses.id, issue_statuses.name,
+                                                (SELECT COUNT(1) FROM issues i WHERE i.project_id IN (#{stringSqlProjectsSubPorjects})
+                                                  AND ((i.assigned_to_id = issues.assigned_to_id
+                                                      AND i.assigned_to_id IS not null)
+                                                      OR (i.assigned_to_id IS null
+                                                        AND issues.assigned_to_id IS null))
+                                                  AND i.status_id = issue_statuses.id) AS totalassignedbystatuses FROM issues,
+                                                issue_statuses WHERE project_id IN (#{stringSqlProjectsSubPorjects})
+                                                AND issue_statuses.id IN
+                                                  (SELECT new_status_id AS issues FROM workflows WHERE role_id IN
+                                                    (SELECT DISTINCT role_id FROM member_roles WHERE member_id IN
+                                                      (SELECT DISTINCT id FROM members WHERE project_id IN (#{stringSqlProjectsSubPorjects})))
+                                                  AND tracker_id IN
+                                                    (SELECT DISTINCT tracker_id FROM projects_trackers WHERE
+                                                    project_id IN (#{stringSqlProjectsSubPorjects})) UNION
+                                                  SELECT old_status_id FROM workflows WHERE role_id IN
+                                                    (SELECT DISTINCT role_id FROM member_roles WHERE member_id IN
+                                                      (SELECT DISTINCT id FROM members WHERE project_id IN (#{stringSqlProjectsSubPorjects})))
+                                                  AND tracker_id IN
+                                                    (SELECT DISTINCT tracker_id FROM projects_trackers WHERE
+                                                    project_id IN (#{stringSqlProjectsSubPorjects}))) GROUP BY assigned_to_id,
+                                                assigned_name,
+                                                issue_statuses.id,
+                                                issue_statuses.name ORDER BY 2,3;")
   end
 
   private
