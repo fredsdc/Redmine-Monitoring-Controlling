@@ -50,11 +50,18 @@ class HomeMonitoringControllingProjectController < ApplicationController
     if @totalIssues > 0 
       @statuses = IssueStatus.find_by_sql("SELECT *,
                                             ((SELECT COUNT(1) FROM issues where project_id in (#{stringSqlProjectsSubProjects}) and status_id = issue_statuses.id)
-                                            /
-                                            #{@totalIssues})*100 as percent,
+                                            / #{@totalIssues}) * 100 as percent,
                                             (SELECT COUNT(1) FROM issues where project_id in (#{stringSqlProjectsSubProjects}) and status_id = issue_statuses.id)
                                             AS totalissues
-                                            FROM issue_statuses;")
+                                            FROM issue_statuses where id in
+                                            (SELECT old_status_id AS id FROM workflows
+                                             where role_id in (#{@project.users_by_role.map{ |x| x[0][:id] }.join(',')})
+                                             and tracker_id in (#{@project.trackers.map{ |x| x[:id] }.join(',')})
+                                             and new_status_id != 0 union
+                                             SELECT new_status_id AS id FROM workflows
+                                             where role_id in (#{@project.users_by_role.map{ |x| x[0][:id] }.join(',')})
+                                             and tracker_id in (#{@project.trackers.map{ |x| x[:id] }.join(',')})
+                                             and old_status_id != 0) order by id;")
     else
       @statuses = nil
     end                                          
