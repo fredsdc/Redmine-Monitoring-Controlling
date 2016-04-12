@@ -39,7 +39,7 @@ $(function () {
             },
             series: [{
                 type: 'pie',
-                data: <%=@statuses.map{ |situacao| [situacao.name.to_s, situacao.totalissues.to_i]}.inspect.html_safe%>
+                data: <%=@statuses.map{ |s| [s.name.to_s, @all_project_issues.map(&:status_id).count(s.id)]}.inspect.html_safe%>
             }]
         });
     });
@@ -62,7 +62,7 @@ $(document).ready(function() {
 			text: '<%=t :statuses_issue_label_title %>'
 		},
 		xAxis: {
-			categories: <%=@statuses.map{ |situacao| situacao.name.to_s}.inspect.html_safe%>,
+			categories: <%=@statuses.map{ |s| s.name.to_s}.inspect.html_safe%>,
 			labels: {enabled: false}
 		},
 		yAxis: {
@@ -81,15 +81,15 @@ $(document).ready(function() {
 			}
 		},
         series: [
-                <%@statuses.each do |cat|%>
+                <%@statuses.each do |s|%>
                 {
-                        name: <%=cat.name.inspect.html_safe%>,
-                        data: [<%=cat.totalissues%>],
+                        name: <%=s.name.inspect.html_safe%>,
+                        data: [<%=@all_project_issues.map(&:status_id).count(s.id)%>],
                         cursor: 'pointer',
                         events: {
                                 // Default action for (left) clicking the data
                                 click: function(point) {
-                                        window.open('../../projects/<%=@project.identifier%>/issues?set_filter=1&f%5B%5D=status_id&op%5Bstatus_id%5D=%3D&v%5Bstatus_id%5D%5B%5D=<%=cat.id%>&f%5B%5D=&c%5B%5D=status&c%5B%5D=priority&c%5B%5D=subject&c%5B%5D=author&c%5B%5D=assigned_to&c%5B%5D=start_date&c%5B%5D=due_date&c%5B%5D=spent_hours&c%5B%5D=done_ratio&group_by=');
+                                        window.open('../../projects/<%=@project.identifier%>/issues?set_filter=1&f%5B%5D=status_id&op%5Bstatus_id%5D=%3D&v%5Bstatus_id%5D%5B%5D=<%=s.id%>&f%5B%5D=&c%5B%5D=status&c%5B%5D=priority&c%5B%5D=subject&c%5B%5D=author&c%5B%5D=assigned_to&c%5B%5D=start_date&c%5B%5D=due_date&c%5B%5D=spent_hours&c%5B%5D=done_ratio&group_by=');
                                 }
                         },
                    dataLabels: {
@@ -106,7 +106,7 @@ $(document).ready(function() {
                                                                 font: 'normal 13px Verdana, sans-serif'
                                                         }
                                                 }
-                  }<%if !(@statuses.last == cat)%>,<%end%>
+                  }<%if !(@statuses.last == s)%>,<%end%>
                  <%end%>
                 ]
 	});
