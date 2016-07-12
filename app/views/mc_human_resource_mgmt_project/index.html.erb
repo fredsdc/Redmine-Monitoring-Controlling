@@ -8,7 +8,7 @@
   <% if @totalIssues > 0  %>	
     <h2><%=t :hr_mgmt_label_title %></h2>
     <label><%=l(:label_role)%>:
-      <%= select_tag "selCCB", options_for_select([l(:label_member_management_all_roles)] + @project.users_by_role.sort.collect{|r| [r[0][:name], r[1].collect{|s| s.id}]}), :onchange => "refresh_chartCCB(this.value);" %>
+      <%= select_tag "selCCB", options_for_select([l(:label_member_management_all_roles)] + @project.users_by_role.sort.collect{|r| [r[0][:name], r[1].collect{|s| s.id}]}), :onchange => "refresh_chartCC(this.value);" %>
     </label>
     <div id="containerColumnBar" class="central_chart"></div>
     <div id="containerStackedBar" class="central_chart"></div>

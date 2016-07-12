@@ -2,32 +2,36 @@
  Column Bar chart
 -->
 <script type="text/javascript">
-  var chart;
   $(document).ready(function() {
-    catCCB = [
+    catCC = [
       <% @statusesByAssigneds.group_by(&:assigned_to_id).each do |s, t| %>
         <%= (s.nil? ? t(:hr_unassigned_issue_label) : (t[0].assigned_first_name.length > 0 ? t[0].assigned_first_name : t[0].assigned_last_name) ).inspect.html_safe%>,
       <%end%>
     ];
-    idsCCB = [
+    idsCC = [
       <% @statusesByAssigneds.group_by(&:assigned_to_id).each do |s| %>
         "<%= (s[0].nil? ? 0 : s[0]) %>",
       <%end%>
     ];
-    datCCB = [
+    datCC = [
       <% @statusesByAssigneds.group_by(&:assigned_to_id).each do |s, t| %>
         {y: <%= t.map{|a| a.totalassignedbystatuses.to_i}.sum.inspect.html_safe%>, user_id: <%= (s.nil? ? 0 : s) %>},
       <%end%>
     ];
-    chartCCB = new Highcharts.Chart({
-      chart: { 
+    da0CC = [
+      <% @project.users.each do |s| %>
+        {name: "<%= s.firstname %>", user_id: <%= s.id %>},
+      <%end%>
+    ];
+    chartCCA = new Highcharts.Chart({
+      chart: {
         renderTo: 'containerColumnBar',
         type: 'column',
         margin: [ 50, 50, 100, 80]
       },
       credits: {
         enabled: false
-      },  
+      },
       scrollbar:{
         enabled: true
       },
@@ -35,7 +39,7 @@
         text: '<%=t :hr_columnbar_title_label%>'
       },
       xAxis: {
-        categories: catCCB,
+        categories: [],
         scrollbar: {
           enabled: true
         },
@@ -52,7 +56,7 @@
           cursor: 'pointer',
           events: {
             click: function(event) {
-              window.open('../../projects/<%=@project.identifier%>/issues?set_filter=1&f%5B%5D=status_id&op%5Bstatus_id%5D=*&f%5B%5D=assigned_to_id&op%5Bassigned_to_id%5D=%3D&v%5Bassigned_to_id%5D%5B%5D=' + event.point.config.user_id + '&f%5B%5D=&c%5B%5D=status&c%5B%5D=priority&c%5B%5D=subject&c%5B%5D=author&c%5B%5D=assigned_to&c%5B%5D=start_date&c%5B%5D=due_date&c%5B%5D=spent_hours&c%5B%5D=done_ratio&group_by=');
+              window.open('../../projects/<%=@project.identifier%>/issues?set_filter=1&f%5B%5D=status_id&op%5Bstatus_id%5D=*&f%5B%5D=assigned_to_id&op%5Bassigned_to_id%5D=' + (event.point.user_id > 0 ? '%3D&v%5Bassigned_to_id%5D%5B%5D=' + event.point.user_id : '%21*') + '&f%5B%5D=&c%5B%5D=status&c%5B%5D=priority&c%5B%5D=subject&c%5B%5D=author&c%5B%5D=assigned_to&c%5B%5D=start_date&c%5B%5D=due_date&c%5B%5D=spent_hours&c%5B%5D=done_ratio&group_by=');
             }
           }
         }
@@ -73,7 +77,7 @@
         }
       },
       series: [{
-        data: datCCB,
+        data: [],
         dataLabels: {
           enabled: true,
           rotation: -90,
@@ -96,36 +100,43 @@
  Stacked Bar chart
 -->
 <script type="text/javascript">
-  var chart;
   $(document).ready(function() {
-    chart = new Highcharts.Chart({
+    serCC = [
+      <% @statusesByAssigneds.group_by(&:id).sort.each do |s, t| %>
+        {
+          data: [
+            <% t.each do |a| %>
+              {y: <%= a.totalassignedbystatuses.to_i %>, user_id: <%= (a.assigned_to_id.nil? ? 0 : a.assigned_to_id) %>, issue_status_id: <%= a.id %>},
+            <%end%>
+          ]
+        },
+      <%end%>
+    ];
+    chartCCB = new Highcharts.Chart({
       chart: {
         renderTo: 'containerStackedBar',
         type: 'bar'
       },
       credits: {
-        enabled: false
-      },  
+        enabled: true
+      },
       scrollbar:{
         enabled: true
-      },  
+      },
       title: {
         text: '<%=t :hr_stackedcolumnbar_title_label%>'
       },
       xAxis: {
-        categories: [
-          <% @statusesByAssigneds.group_by(&:assigned_to_id).each do |s, t| %>
-            <%= (s.nil? ? t(:hr_unassigned_issue_label) : (t[0].assigned_first_name.length > 0 ? t[0].assigned_first_name : t[0].assigned_last_name) ).inspect.html_safe%>,
-          <%end%>
-        ]
+        categories: catCC
       },
       yAxis: {
+        reversedStacks: false,
+        min: 0,
         title: {
           text: '<%=t :hr_stackedcolumnbar_yaxis_label%>'
         }
       },
       legend: {
-        backgroundColor: '#FFFFFF',
         reversed: false,
         y: -50
       },
@@ -140,48 +151,71 @@
           cursor: 'pointer',
           events: {
             click: function(event) {
-              window.open('../../projects/<%=@project.identifier%>/issues?set_filter=1&f%5B%5D=status_id&op%5Bstatus_id%5D=%3D&v%5Bstatus_id%5D%5B%5D=' + event.point.config.issue_status_id + '&f%5B%5D=assigned_to_id&op%5Bassigned_to_id%5D=%3D&v%5Bassigned_to_id%5D%5B%5D=' + event.point.config.user_id + '&f%5B%5D=&c%5B%5D=status&c%5B%5D=priority&c%5B%5D=subject&c%5B%5D=author&c%5B%5D=assigned_to&c%5B%5D=start_date&c%5B%5D=due_date&c%5B%5D=spent_hours&c%5B%5D=done_ratio&group_by=');
+              window.open('../../projects/<%=@project.identifier%>/issues?set_filter=1&f%5B%5D=status_id&op%5Bstatus_id%5D=%3D&v%5Bstatus_id%5D%5B%5D=' + event.point.issue_status_id + '&f%5B%5D=assigned_to_id&op%5Bassigned_to_id%5D=' + (event.point.user_id > 0 ? '%3D&v%5Bassigned_to_id%5D%5B%5D=' + event.point.user_id : '%21*') + '&f%5B%5D=&c%5B%5D=status&c%5B%5D=priority&c%5B%5D=subject&c%5B%5D=author&c%5B%5D=assigned_to&c%5B%5D=start_date&c%5B%5D=due_date&c%5B%5D=spent_hours&c%5B%5D=done_ratio&group_by=');
             }
           },
           stacking: 'normal'
         }
       },
       series: [
-        <% @statusesByAssigneds.group_by(&:id).each do |s, t| %>
+        <% @statusesByAssigneds.group_by(&:id).sort.each do |s, t| %>
           {
             name: '<%= IssueStatus.find(s).name%>',
-            data: [
-              <%= t.map {|a| "{y: " + a.totalassignedbystatuses.to_i.to_s + ", user_id: " + (a.assigned_to_id.nil? ? "0" : a.assigned_to_id.to_s) + ", issue_status_id: " + a.id.to_s + "},"} %>
-            ]
-          }, 
+            data: []
+          },
         <%end%>
-      ]    
+      ]
     });
+    refresh_chartCC("All roles"); 
   });
 </script>
 <!--
  Refresh table
 -->
 <script>
-  function refresh_chartCCB(ids) {
-    if (ids == "All roles") {
-      var catTemp = catCCB;
-      var datTemp = datCCB;
+  function refresh_chartCC(user_ids) {
+    if (user_ids == "All roles") {
+      var ids = idsCC.join()
     } else {
-      var catTemp = [];
-      var datTemp = [];
-      ids.slice(1,-1).replace(/\s+/g, '').split(",").forEach(
-        function(id) {
-          catTemp.push(catCCB[idsCCB.indexOf(id)]);
-          datTemp.push(datCCB[idsCCB.indexOf(id)]);
-        }
-      );
-      if (idsCCB.indexOf("0") >= 0) {
-        catTemp.push(catCCB[idsCCB.indexOf("0")]);
-        datTemp.push(datCCB[idsCCB.indexOf("0")]);
-      };
+      var ids = user_ids
     };
+    var catTemp = [];
+    var datTemp = [];
+    var serTemp = [];
+    for(var i in serCC) {
+      serTemp.push({data: []})
+    };
+    ids.replace(/[\[\]\s]+/g, '').split(",").forEach(
+      function(id) {
+        if (idsCC.indexOf(id) >= 0) {
+          if (id != "0") {
+            catTemp.push(catCC[idsCC.indexOf(id)]);
+            datTemp.push({user_id: datCC[idsCC.indexOf(id)].user_id, y: datCC[idsCC.indexOf(id)].y});
+            for(var i in serCC) {
+              serTemp[i].data.push({issue_status_id: serCC[i].data[0].issue_status_id, user_id: parseInt(id), y: $.grep(serCC[i].data, function(e){ return e.user_id==id; })[0].y});
+            }
+          }
+        } else {
+          catTemp.push($.grep(da0CC, function(e){ return e.user_id == id; })[0].name);
+          datTemp.push({user_id: parseInt(id), y: 0});
+          for(var i in serCC) {
+            serTemp[i].data.push({issue_status_id: serCC[i].data[0].issue_status_id, user_id: parseInt(id), y: 0});
+          }
+        }
+      }
+    );
+    if (idsCC.indexOf("0") >= 0) {
+      catTemp.push(catCC[idsCC.indexOf("0")]);
+      datTemp.push({user_id: 0, y: datCC[idsCC.indexOf("0")].y});
+      for(var i in serCC) {
+        serTemp[i].data.push({issue_status_id: serCC[i].data[0].issue_status_id, user_id: 0, y: $.grep(serCC[i].data, function(e){ return e.user_id==0; })[0].y});
+      }
+    };
+    chartCCA.xAxis[0].setCategories(catTemp);
+    chartCCA.series[0].setData(datTemp);
     chartCCB.xAxis[0].setCategories(catTemp);
-    chartCCB.series[0].setData(datTemp);
+    for(var i in serCC) {
+      chartCCB.series[i].setData(serTemp[i].data);
+    };
   }
 </script>
