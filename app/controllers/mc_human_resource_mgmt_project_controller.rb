@@ -25,7 +25,8 @@ class McHumanResourceMgmtProjectController < ApplicationController
                                                where i.project_id in (#{stringSqlProjectsSubProjects})
                                                and ((i.assigned_to_id = issues.assigned_to_id and i.assigned_to_id is not null)or(i.assigned_to_id is null and issues.assigned_to_id is null)) and i.status_id = issue_statuses.id) as totalassignedbystatuses
                                                from issues, issue_statuses  
-                                               where project_id in (#{stringSqlProjectsSubProjects}) 
+                                               where project_id in (#{stringSqlProjectsSubProjects})
+                                               and issue_statuses.id in (select status_id from issues where project_id in (#{stringSqlProjectsSubProjects})) 
                                                group by assigned_to_id, assigned_first_name, assigned_last_name, issue_statuses.id, issue_statuses.name
                                                order by 2,3;")  || nil  
   end
