@@ -104,14 +104,16 @@
     serCC = [
       <% @statusesByAssigneds.group_by(&:id).sort.each do |s, t| %>
         {
+          issue_status_id: <%= s %>,
           data: [
             <% t.each do |a| %>
-              {y: <%= a.totalassignedbystatuses.to_i %>, user_id: <%= (a.assigned_to_id.nil? ? 0 : a.assigned_to_id) %>, issue_status_id: <%= a.id %>},
+              {y: <%= a.totalassignedbystatuses.to_i %>},
             <%end%>
           ]
         },
       <%end%>
     ];
+console.log(serCC);
     chartCCB = new Highcharts.Chart({
       chart: {
         renderTo: 'containerStackedBar',
@@ -182,7 +184,8 @@
     var catTemp = [];
     var datTemp = [];
     var serTemp = [];
-    for(var i in serCC) {
+    var i = serCC.length;
+    while (i--) {
       serTemp.push({data: []})
     };
     ids.replace(/[\[\]\s]+/g, '').split(",").forEach(
@@ -191,15 +194,15 @@
           if (id != "0") {
             catTemp.push(catCC[idsCC.indexOf(id)]);
             datTemp.push({user_id: datCC[idsCC.indexOf(id)].user_id, y: datCC[idsCC.indexOf(id)].y});
-            for(var i in serCC) {
-              serTemp[i].data.push({issue_status_id: serCC[i].data[0].issue_status_id, user_id: parseInt(id), y: $.grep(serCC[i].data, function(e){ return e.user_id==id; })[0].y});
+            for (var i = 0, len = serCC.length; i < len; i++) {
+              serTemp[i].data.push({issue_status_id: serCC[i].issue_status_id, user_id: parseInt(id), y: serCC[i].data[idsCC.indexOf(id)].y});
             }
           }
         } else {
           catTemp.push($.grep(da0CC, function(e){ return e.user_id == id; })[0].name);
           datTemp.push({user_id: parseInt(id), y: 0});
-          for(var i in serCC) {
-            serTemp[i].data.push({issue_status_id: serCC[i].data[0].issue_status_id, user_id: parseInt(id), y: 0});
+          for (var i = 0, len = serCC.length; i < len; i++) {
+            serTemp[i].data.push({issue_status_id: serCC[i].issue_status_id, user_id: parseInt(id), y: 0});
           }
         }
       }
@@ -207,14 +210,14 @@
     if (idsCC.indexOf("0") >= 0) {
       catTemp.push(catCC[idsCC.indexOf("0")]);
       datTemp.push({user_id: 0, y: datCC[idsCC.indexOf("0")].y});
-      for(var i in serCC) {
-        serTemp[i].data.push({issue_status_id: serCC[i].data[0].issue_status_id, user_id: 0, y: $.grep(serCC[i].data, function(e){ return e.user_id==0; })[0].y});
+      for (var i = 0, len = serCC.length; i < len; i++) {
+        serTemp[i].data.push({issue_status_id: serCC[i].issue_status_id, user_id: 0, y: serCC[i].data[idsCC.indexOf("0")].y});
       }
     };
     chartCCA.xAxis[0].setCategories(catTemp);
     chartCCA.series[0].setData(datTemp);
     chartCCB.xAxis[0].setCategories(catTemp);
-    for(var i in serCC) {
+    for (var i = 0, len = serCC.length; i < len; i++) {
       chartCCB.series[i].setData(serTemp[i].data);
     };
   }
