@@ -51,8 +51,8 @@ class HomeMonitoringControllingProjectController < ApplicationController
       @statuses = []
       @projects_subprojects.each do |p|
         @statuses |= IssueStatus.where(:id => 
-          WorkflowTransition.where(:workspace_id => p[:workspace_id], :role_id => p.users_by_role.map{|x| x[0][:id]}, :tracker_id => p.trackers.map(&:id)).map(&:old_status_id) +
-          WorkflowTransition.where(:workspace_id => p[:workspace_id], :role_id => p.users_by_role.map{|x| x[0][:id]}, :tracker_id => p.trackers.map(&:id)).map(&:new_status_id)
+          WorkflowTransition.where(:role_id => p.users_by_role.map{|x| x[0][:id]}, :tracker_id => p.trackers.map(&:id)).map(&:old_status_id) +
+          WorkflowTransition.where(:role_id => p.users_by_role.map{|x| x[0][:id]}, :tracker_id => p.trackers.map(&:id)).map(&:new_status_id)
         ).to_a
       end
     else
