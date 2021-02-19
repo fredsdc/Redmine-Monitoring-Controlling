@@ -4,61 +4,34 @@ class McTimeMgmtProjectController < ApplicationController
   layout 'base'
   before_action :find_project, :authorize
   menu_item :redmine_monitoring_controlling
-    
+
   def index
-    #tool instance
-    tool = McTools.new
-    
     #get main project
     @project = Project.find_by_identifier(params[:id])
 
     #get projects and sub projects
-    stringSqlProjectsSubProjects = tool.return_ids(@project.id)   
-    
+    array_projects_subprojects = [@project.id] + @project.descendants.pluck(:id)
+
     # total issues from the project and subprojects
-    @totalIssues = Issue.where(:project_id => [stringSqlProjectsSubProjects]).count
+    @totalIssues = Issue.where(project_id: array_projects_subprojects).count
 
+    projectIssues=Issue.where(project_id: array_projects_subprojects, parent_id: nil).where.not(due_date: nil)
+    @issuesSpentHours = projectIssues.order(:due_date).pluck(:due_date, :estimated_hours).group_by{|k,v| k}.map{|k,v| [k, {
+                          estimated_hours: v.map{|i| i[1].to_i}.reduce(0, :+),
+                          sumestimatedhours: projectIssues.where.not(estimated_hours:nil).select{|x| x.due_date <= k}.
+                            pluck(:estimated_hours).reduce(0, :+),
+                          sumspenthours: TimeEntry.where(project_id: array_projects_subprojects).
+                            select{|x| x.spent_on <= k}.pluck(:hours).reduce(0, :+)}]}.to_h
 
-    @issuesSpentHours = Issue.find_by_sql("select issues.due_date, sum(issues.estimated_hours) as estimated_hours,
-                                                  (select sum(i.estimated_hours)
-                                                  from issues i
-                                                  where i.project_id in (#{stringSqlProjectsSubProjects})
-                                                  /*and i.due_date is not null*/
-                                                  and i.due_date <= issues.due_date and i.parent_id is null) as sumestimatedhours,
-                                                  (select sum(hours) from time_entries where project_id in (#{stringSqlProjectsSubProjects}) and spent_on <= issues.due_date ) as sumspenthours
-                                                  from issues
-                                                  where issues.project_id in (#{stringSqlProjectsSubProjects})
-                                            /*and due_date is not null*/
-                                            and due_date <= issues.due_date
-                                            and parent_id is null
-                                            group by issues.due_date
-                                            order by due_date;")    
-                                        
-
-    @spentHoursByVersion = Issue.find_by_sql("select versions.name as version, versions.effective_date, sum(issues.estimated_hours) as estimated_hours, 
-                                             (select sum(i.estimated_hours) 
-                                              from issues i
-                                              where i.project_id in (#{stringSqlProjectsSubProjects})
-                                              and i.fixed_version_id = versions.id
-                                              /*and i.due_date is not null*/
-                                              and i.parent_id is null 
-                                              and i.due_date <= versions.effective_date) as sumestimatedhours,
-                                             (select sum(hours) 
-                                              from issues i, time_entries t
-                                              where i.project_id in (#{stringSqlProjectsSubProjects})
-                                              and i.project_id = t.project_id
-                                              and i.id = t.issue_id
-                                              and i.fixed_version_id = versions.id
-                                              and t.spent_on <= versions.effective_date) as sumspenthours
-                                             from issues, versions 
-                                             where issues.project_id in (#{stringSqlProjectsSubProjects})
-                                             and issues.parent_id is null
-                                             and issues.fixed_version_id = versions.id
-                                             and due_date <= versions.effective_date
-                                             group by versions.id, versions.name, versions.effective_date
-                                             order by versions.effective_date;")
-                                      
-
+    @spentHoursByVersion = projectIssues.where.not(fixed_version_id: nil).joins(:fixed_version).order("versions.effective_date").
+                             pluck(:fixed_version_id, :estimated_hours, :due_date).group_by{|k,v| k}.map{|k,v| [k, {
+                               version: Version.find(k).name,
+                               effective_date: Version.find(k).effective_date,
+                               estimated_hours: v.map{|x| x[1].to_i}.reduce(0, :+),
+                               sumestimatedhours: projectIssues.where(fixed_version_id: k).where.not(estimated_hours:nil).
+                                 select{|x| x.due_date <= Version.find(k).effective_date}.pluck(:estimated_hours).reduce(0, :+),
+                               sumspenthours: TimeEntry.where(project_id: array_projects_subprojects).where.not(issue_id: nil).
+                                 select{|x| x.issue.fixed_version_id == k && x.spent_on <= Version.find(k).effective_date}.pluck(:hours).reduce(0, :+)}]}.to_h
   end
 
   private

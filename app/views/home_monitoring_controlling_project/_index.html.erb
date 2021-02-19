@@ -1,5 +1,5 @@
 <!--
-Tasks by Statuses / Situação por Tarefas 
+Tasks by Statuses / Situação por Tarefas
 -->
 <script type="text/javascript">
 $(function () {
@@ -16,11 +16,11 @@ $(function () {
                 plotShadow: false
             },
             title: {
-                text: '<%=@project.name%>'
+                text: '<%= @project.name %>'
             },
             tooltip: {
                 formatter: function() {
-                    return '<b>'+ this.point.name +'</b>: '+ Highcharts.numberFormat(this.y,0) +' <%=t :tasks_label%>';
+                    return '<b>'+ this.point.name +'</b>: '+ Highcharts.numberFormat(this.y,0) +' <%= t :tasks_label %>';
                 }
             },
             plotOptions: {
@@ -39,11 +39,11 @@ $(function () {
             },
             series: [{
                 type: 'pie',
-                data: <%=@statuses.map{ |s| [s.name.to_s, @all_project_issues.map(&:status_id).count(s.id)]}.inspect.html_safe%>
+                data: <%= @statuses.map{ |s| [s.name.to_s, @all_project_issues.map(&:status_id).count(s.id)]}.inspect.html_safe %>
             }]
         });
     });
-    
+
 });
 
 </script>
@@ -53,22 +53,22 @@ $(document).ready(function() {
 	chart = new Highcharts.Chart({
      	credits: {
  		  enabled: false
-		},		
+		},
 		chart: {
 			renderTo: 'containerColumn',
 			type: 'column'
 		},
 		title: {
-			text: '<%=t :statuses_issue_label_title %>'
+			text: '<%= t :statuses_issue_label_title %>'
 		},
 		xAxis: {
-			categories: <%=@statuses.map{ |s| s.name.to_s}.inspect.html_safe%>,
+			categories: <%= @statuses.map{ |s| s.name.to_s}.inspect.html_safe %>,
 			labels: {enabled: false}
 		},
 		yAxis: {
 			min: 0,
 			title: {
-				text: '<%=t :tasks_label%> ',
+				text: '<%= t :tasks_label %> ',
 			}
 		},
 		legend: {
@@ -77,19 +77,19 @@ $(document).ready(function() {
 		tooltip: {
 			formatter: function() {
 				return '<b>'+ this.series.name +'</b><br/>'+
-					'<%=t :tasks_label%> '+ Highcharts.numberFormat(this.y, 0);
+					'<%= t :tasks_label %> '+ Highcharts.numberFormat(this.y, 0);
 			}
 		},
         series: [
-                <%@statuses.each do |s|%>
+                <% @statuses.each do |s| %>
                 {
-                        name: <%=s.name.inspect.html_safe%>,
-                        data: [<%=@all_project_issues.map(&:status_id).count(s.id)%>],
+                        name: <%= s.name.inspect.html_safe %>,
+                        data: [<%= @all_project_issues.map(&:status_id).count(s.id) %>],
                         cursor: 'pointer',
                         events: {
                                 // Default action for (left) clicking the data
                                 click: function(point) {
-                                        window.open('../../projects/<%=@project.identifier%>/issues?set_filter=1&f%5B%5D=status_id&op%5Bstatus_id%5D=%3D&v%5Bstatus_id%5D%5B%5D=<%=s.id%>&f%5B%5D=&c%5B%5D=status&c%5B%5D=priority&c%5B%5D=subject&c%5B%5D=author&c%5B%5D=assigned_to&c%5B%5D=start_date&c%5B%5D=due_date&c%5B%5D=spent_hours&c%5B%5D=done_ratio&group_by=');
+                                        window.open('../../projects/<%= @project.identifier %>/issues?set_filter=1&f%5B%5D=status_id&op%5Bstatus_id%5D=%3D&v%5Bstatus_id%5D%5B%5D=<%= s.id %>&f%5B%5D=&c%5B%5D=status&c%5B%5D=priority&c%5B%5D=subject&c%5B%5D=author&c%5B%5D=assigned_to&c%5B%5D=start_date&c%5B%5D=due_date&c%5B%5D=spent_hours&c%5B%5D=done_ratio&group_by=');
                                 }
                         },
                    dataLabels: {
@@ -106,8 +106,8 @@ $(document).ready(function() {
                                                                 font: 'normal 13px Verdana, sans-serif'
                                                         }
                                                 }
-                  }<%if !(@statuses.last == s)%>,<%end%>
-                 <%end%>
+                  }<% if !(@statuses.last == s) %>,<% end %>
+                 <% end %>
                 ]
 	});
 });
@@ -131,11 +131,11 @@ $(function () {
                 plotShadow: false
             },
             title: {
-                text: '<%=t :task_manageable_chart_title %>'
+                text: '<%= t :task_manageable_chart_title %>'
             },
             tooltip: {
                 formatter: function() {
-                    return '<b>'+ this.point.name +'</b>: '+ Highcharts.numberFormat(this.y,0)+ ' <%=t :tasksof_label%> '+<%= @project.issues.count %>;
+                    return '<b>'+ this.point.name +'</b>: '+ Highcharts.numberFormat(this.y,0)+ ' <%= t :tasksof_label %> '+<%= @project.issues.count %>;
                 }
             },
             plotOptions: {
@@ -157,11 +157,11 @@ $(function () {
             series: [{
                 type: 'pie',
                 name: 'Tarefas por Situação',
-                data: <%=@managementissues.map{ |issue| [issue.typemanagement.to_s, issue.totalissues.to_i]}.inspect.html_safe%>
+                data: <%= @managementissues.map{ |issue| [issue[:typemanagement].to_s, issue[:totalissues].to_i]}.inspect.html_safe %>
             }]
         });
     });
-    
+
 });
 </script>
 
@@ -180,11 +180,11 @@ $(function () {
                 plotShadow: false
             },
             title: {
-                text: '<%=t :task_manageable_chart_overdue_title %>'
+                text: '<%= t :task_manageable_chart_overdue_title %>'
             },
             tooltip: {
                 formatter: function() {
-                    return '<b>'+ this.point.name +'</b>: '+ Highcharts.numberFormat(this.y,0)+ ' <%=t :tasksof_label%> '+<%= @managementissues.first.totalissues %>+' <%=t :manageable_label%>';
+                    return '<b>'+ this.point.name +'</b>: '+ Highcharts.numberFormat(this.y,0)+ ' <%= t :tasksof_label %> '+<%= @managementissues.first[:totalissues] %>+' <%= t :manageable_label %>';
                 }
             },
             plotOptions: {
@@ -206,11 +206,11 @@ $(function () {
             series: [{
                 type: 'pie',
                 name: 'Tarefas atrasadas',
-                data: <%=@overdueissueschart.map{ |issue| [issue.typeissue.to_s, issue.totalissuedelayed.to_i]}.inspect.html_safe%>
+                data: <%= @overdueissueschart.map{ |issue| [issue[:typeissue].to_s, issue[:totalissuedelayed].to_i]}.inspect.html_safe %>
             }]
         });
     });
-    
+
 });
 
 </script>
@@ -230,11 +230,11 @@ $(function () {
                 plotShadow: false
             },
             title: {
-                text: '<%=@project.name%>'
+                text: '<%= @project.name %>'
             },
             tooltip: {
                 formatter: function() {
-                    return '<b>'+ this.point.name +'</b>: '+ Highcharts.numberFormat(this.y,0) +' <%=t :tasks_label%>';
+                    return '<b>'+ this.point.name +'</b>: '+ Highcharts.numberFormat(this.y,0) +' <%= t :tasks_label %>';
                 }
             },
             plotOptions: {
@@ -253,11 +253,11 @@ $(function () {
             },
             series: [{
                 type: 'pie',
-                data: <%=@issuesbycategory.map{ |category| [category.name.to_s, category.totalbycategory.to_i]}.inspect.html_safe%>
+                data: <%= @issuesbycategory.map{ |category| [category[:name].to_s, category[:totalbycategory].to_i]}.inspect.html_safe %>
             }]
         });
     });
-    
+
 });
 </script>
 
@@ -270,10 +270,10 @@ $(document).ready(function() {
 			type: 'column'
 		},
 		title: {
-			text: '<%=@project.name%>'
+			text: '<%= @project.name %>'
 		},
 		subtitle: {
-			text: '<%=t :categories_issue_label_title%>'
+			text: '<%= t :categories_issue_label_title %>'
 		},
 		scrollbar:{
             enabled: false
@@ -284,8 +284,8 @@ $(document).ready(function() {
 		xAxis: {
 			categories: [
 			   <% @issuesbycategory.each do |cat| %>
-   			     <%= cat.name.to_s.inspect.html_safe %>,
-			   <%end%>
+   			     <%= cat[:name].to_s.inspect.html_safe %>,
+			   <% end %>
 			],
 			labels: {
 				rotation: -45,
@@ -318,24 +318,24 @@ $(document).ready(function() {
 		},
 			series: [
 			{
-			name: '<%=t :tobedelivered_label%>',
+			name: '<%= t :tobedelivered_label %>',
 			data: [
 			 	   	<% @issuesbycategory.each do |cat| %>
-     			      <%= cat.totalundone %>,
-			        <%end%>
+     			      <%= cat[:totalundone] %>,
+			        <% end %>
 				  ]	,
 					color: '#AA4643'
 		    },
 				{
-				name: '<%=t :delivered_label%>',
+				name: '<%= t :delivered_label %>',
 				data: [
 				 	   <% @issuesbycategory.each do |cat| %>
-         			      <%= cat.totaldone %>,
-	       		       <%end%>				  
+         			      <%= cat[:totaldone] %>,
+	       		       <% end %>
 				]	,
 					color: '#4572A7'
 			    }
-				
+
 		]
 	});
 });

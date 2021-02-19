@@ -1,5 +1,5 @@
-<!-- 
- Timeline Sum Estimated Hours and Executed Hours by due dates  
+<!--
+ Timeline Sum Estimated Hours and Executed Hours by due dates
 -->
 <script type="text/javascript">
 var chart;
@@ -13,16 +13,16 @@ $(document).ready(function() {
 			type: 'areaspline'
 		},
 		title: {
-			text: '<%= @project.name%>'
+			text: '<%= @project.name %>'
 		},
 		subtitle: {
-			text: '<%=t :time_mgmt_label_title%>'
+			text: '<%= t :time_mgmt_label_title %>'
 		},
 		xAxis: {
 			categories: [
-							<% @issuesSpentHours.each do | issue | %>
-							  <%= issue.due_date.to_date.strftime(t(:default_date_format)).inspect.html_safe %>,
-							<%end%>
+							<%  @issuesSpentHours.each do |issue| %>
+							  <%= issue[0].to_date.strftime(t(:default_date_format)).inspect.html_safe %>,
+							<% end %>
 						],
 
 						labels:{
@@ -33,7 +33,7 @@ $(document).ready(function() {
 		},
 		yAxis: {
 			title: {
-				text: '<%=t :time_mgmt_areaspline_yaxis_label %>'
+				text: '<%= t :time_mgmt_areaspline_yaxis_label %>'
 			},
 			min: 0
 		},
@@ -41,51 +41,51 @@ $(document).ready(function() {
 				formatter: function() {
 					var s;
 					if (this.point.name) { // the pie chart
-						s = ''+ this.point.name +': '+ Highcharts.numberFormat(this.y,2) +' '+'<%=t :time_mgmt_hours_label%>';
+						s = ''+ this.point.name +': '+ Highcharts.numberFormat(this.y,2) +' '+'<%= t :time_mgmt_hours_label %>';
 					} else {
-						s = '<b>'+ this.series.name +'</b><br/>'+ this.x +' : '+ Highcharts.numberFormat(this.y,2) +' '+'<%=t :time_mgmt_hours_label%>';
+						s = '<b>'+ this.series.name +'</b><br/>'+ this.x +' : '+ Highcharts.numberFormat(this.y,2) +' '+'<%= t :time_mgmt_hours_label %>';
 					}
 					return s;
 				}
-				
+
 
 		},
 		plotOptions: {
 					areaspline: {
 						fillOpacity: 0.5
 					}
-				},		
+				},
 		series: [ {
-			name: '<%=t :time_mgmt_estimated_label%>',
+			name: '<%= t :time_mgmt_estimated_label %>',
 			data:
-			[ 
-			 <% @issuesSpentHours.each do | issue | %>
-			  <%=issue.sumestimatedhours.to_f%>,
-			 <%end%>
+			[
+			 <%  @issuesSpentHours.each do |issue| %>
+			  <%= issue[1][:sumestimatedhours].to_f %>,
+			 <%  end %>
 			]
 		},
 		{
-			name: '<%=t :time_mgmt_spent_label %>',
+			name: '<%= t :time_mgmt_spent_label %>',
 			data:
-			[ 
-			 <% @issuesSpentHours.each do | issue | %>
-			  <%=issue.sumspenthours.to_f%>,
-			 <%end%>
+			[
+			 <%  @issuesSpentHours.each do |issue| %>
+			  <%= issue[1][:sumspenthours].to_f %>,
+			 <%  end %>
 			]
 		},
-		
+
 		{
 					type: 'pie',
-					name: '<%=t :time_mgmt_label_title%>',
+					name: '<%= t :time_mgmt_label_title %>',
 					data: [
 					           {
-									name: '<%=t :time_mgmt_estimated_label%>',
-									y: <%= @issuesSpentHours.last.sumestimatedhours.to_f %>,
+									name: '<%= t :time_mgmt_estimated_label %>',
+									y: <%= @issuesSpentHours[@issuesSpentHours.keys.max][:sumestimatedhours].to_f %>,
 									color: '#4572A7'
 								}, {
-									name: '<%=t :time_mgmt_spent_label %>',
-									y: <%= @issuesSpentHours.last.sumspenthours.to_f %>,
-									color: '#AA4643' 
+									name: '<%= t :time_mgmt_spent_label %>',
+									y: <%= @issuesSpentHours[@issuesSpentHours.keys.max][:sumspenthours].to_f %>,
+									color: '#AA4643'
 								}
 					],
 					center: [120, 30],
@@ -97,9 +97,9 @@ $(document).ready(function() {
                             return Highcharts.numberFormat(this.percentage,2) +' %';
                         }
 					}
-					
+
 		}
-				
+
 		]
 	});
 });
@@ -108,11 +108,11 @@ $(document).ready(function() {
 <%
 @spentHoursByVersionEstimated = 0
 @spentHoursByVersionSpent = 0
-@spentHoursByVersion.each do | issue |
-	@spentHoursByVersionEstimated = @spentHoursByVersionEstimated + issue.sumestimatedhours.to_f unless issue.sumestimatedhours.nil?
-    @spentHoursByVersionSpent	  = @spentHoursByVersionSpent +issue.sumspenthours.to_f unless issue.sumspenthours.nil?
+@spentHoursByVersion.each do |issue|
+	@spentHoursByVersionEstimated = @spentHoursByVersionEstimated + issue[1][:sumestimatedhours].to_f
+  @spentHoursByVersionSpent	    = @spentHoursByVersionSpent + issue[1][:sumspenthours].to_f
 end
-%>
+ %>
 
 
 <script type="text/javascript">
@@ -128,16 +128,16 @@ $(function () {
 	 		  enabled: false
 			},
             title: {
-                text: '<%= @project.name%>'
+                text: '<%= @project.name %>'
             },
             subtitle: {
-                text: '<%=t :time_mgmt_version_label_title%>'
+                text: '<%= t :time_mgmt_version_label_title %>'
             },
             xAxis: {
                 categories: [
-							<% @spentHoursByVersion.each do | issue | %>
-							  <%= (issue.version+' <br/> '+issue.effective_date.to_date.strftime(t(:default_date_format))).inspect.html_safe %>,
-							<%end%>
+							<%  @spentHoursByVersion.each do |issue| %>
+							  <%= (issue[1][:version]+' <br/> '+issue[1][:effective_date].to_date.strftime(t(:default_date_format))).inspect.html_safe %>,
+							<% end %>
 							],
 							labels: {
 			                    enabled: true
@@ -145,7 +145,7 @@ $(function () {
             },
             yAxis: {
                 title: {
-                    text: '<%=t :time_mgmt_areaspline_yaxis_label%>'
+                    text: '<%= t :time_mgmt_areaspline_yaxis_label %>'
                 },
                 labels: {
                     formatter: function() {
@@ -167,40 +167,40 @@ $(function () {
                 }
             },
             series: [{
-                name: '<%=t :time_mgmt_estimated_label%>',
+                name: '<%= t :time_mgmt_estimated_label %>',
                 marker: {
                     symbol: 'square'
                 },
 
                 data: [
-					   	<% @spentHoursByVersion.each do | issue | %>
-					     <%= issue.sumestimatedhours.to_f.round(2)%>,
-					    <%end%>
+					   	<%  @spentHoursByVersion.each do |issue| %>
+					     <%= issue[1][:sumestimatedhours].to_f.round(2) %>,
+					    <% end %>
 					  ]
-    
+
             }, {
-                name: '<%=t :time_mgmt_spent_label %>',
+                name: '<%= t :time_mgmt_spent_label %>',
                 marker: {
                     symbol: 'diamond'
                 },
                 data: [
-				        <% @spentHoursByVersion.each do | issue | %>
-					     <%=issue.sumspenthours.to_f.round(2)%>,
-					    <%end%>
+				        <%  @spentHoursByVersion.each do |issue| %>
+						     <%= issue[1][:sumspenthours].to_f.round(2) %>,
+						    <% end %>
 				      ]
             },
 			{
 						type: 'pie',
-						name: '<%=t :time_mgmt_label_title%>',
+						name: '<%= t :time_mgmt_label_title %>',
 						data: [
 						           {
-										name: '<%=t :time_mgmt_estimated_label%>',
+										name: '<%= t :time_mgmt_estimated_label %>',
 										y: <%= @spentHoursByVersionEstimated.to_f %>,
 										color: '#4572A7'
 									}, {
-										name: '<%=t :time_mgmt_spent_label %>',
+										name: '<%= t :time_mgmt_spent_label %>',
 										y: <%= @spentHoursByVersionSpent.to_f %>,
-										color: '#AA4643' 
+										color: '#AA4643'
 									}
 						],
 						center: [120, 30],
@@ -211,7 +211,7 @@ $(function () {
 							enabled: true,
     						distance: 0,
 							formatter: function() {
-	                            return Highcharts.numberFormat(this.y,2) +' '+'<%=t :time_mgmt_hours_label%>'+'<br/>'+ Highcharts.numberFormat(this.percentage,2) +' %';
+	                            return Highcharts.numberFormat(this.y,2) +' '+'<%= t :time_mgmt_hours_label %>'+'<br/>'+ Highcharts.numberFormat(this.percentage,2) +' %';
 	                        }
 						}
 
@@ -219,6 +219,6 @@ $(function () {
           ]
         });
     });
-    
+
 });
 </script>

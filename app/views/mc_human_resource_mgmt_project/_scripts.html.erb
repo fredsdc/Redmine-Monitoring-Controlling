@@ -4,24 +4,24 @@
 <script type="text/javascript">
   $(document).ready(function() {
     catCC = [
-      <% @statusesByAssigneds.group_by(&:assigned_to_id).each do |s, t| %>
-        <%= (s.nil? ? t(:hr_unassigned_issue_label) : (t[0].assigned_first_name.length > 0 ? t[0].assigned_first_name : t[0].assigned_last_name) ).inspect.html_safe%>,
-      <%end%>
+      <%  @statusesByAssigneds.group_by{|k, v| k[:assigned_to_id]}.each do |s, t| %>
+        <%= (s == 0 ? t(:hr_unassigned_issue_label) : t[0][:assigned_to_name]).inspect.html_safe %>,
+      <% end %>
     ];
     idsCC = [
-      <% @statusesByAssigneds.group_by(&:assigned_to_id).each do |s| %>
-        "<%= (s[0].nil? ? 0 : s[0]) %>",
-      <%end%>
+      <%  @statusesByAssigneds.group_by{|k, v| k[:assigned_to_id]}.each do |s, t| %>
+        "<%= s %>",
+      <% end %>
     ];
     datCC = [
-      <% @statusesByAssigneds.group_by(&:assigned_to_id).each do |s, t| %>
-        {y: <%= t.map{|a| a.totalassignedbystatuses.to_i}.sum.inspect.html_safe%>, user_id: <%= (s.nil? ? 0 : s) %>},
-      <%end%>
+      <%  @statusesByAssigneds.group_by{|k, v| k[:assigned_to_id]}.each do |s, t| %>
+        {y: <%= t.count %>, user_id: <%= s %>},
+      <% end %>
     ];
     da0CC = [
-      <% @project.users.each do |s| %>
+      <%  @project.users.each do |s| %>
         {name: "<%= s.firstname %>", user_id: <%= s.id %>},
-      <%end%>
+      <% end %>
     ];
     chartCCA = new Highcharts.Chart({
       chart: {
@@ -36,7 +36,7 @@
         enabled: true
       },
       title: {
-        text: '<%=t :hr_columnbar_title_label%>'
+        text: '<%= t :hr_columnbar_title_label %>'
       },
       xAxis: {
         categories: [],
@@ -56,7 +56,7 @@
           cursor: 'pointer',
           events: {
             click: function(event) {
-              window.open('../../projects/<%=@project.identifier%>/issues?set_filter=1&f%5B%5D=status_id&op%5Bstatus_id%5D=*&f%5B%5D=assigned_to_id&op%5Bassigned_to_id%5D=' + (event.point.user_id > 0 ? '%3D&v%5Bassigned_to_id%5D%5B%5D=' + event.point.user_id : '%21*') + '&f%5B%5D=&c%5B%5D=status&c%5B%5D=priority&c%5B%5D=subject&c%5B%5D=author&c%5B%5D=assigned_to&c%5B%5D=start_date&c%5B%5D=due_date&c%5B%5D=spent_hours&c%5B%5D=done_ratio&group_by=');
+              window.open('../../projects/<%= @project.identifier %>/issues?set_filter=1&f%5B%5D=status_id&op%5Bstatus_id%5D=*&f%5B%5D=assigned_to_id&op%5Bassigned_to_id%5D=' + (event.point.user_id > 0 ? '%3D&v%5Bassigned_to_id%5D%5B%5D=' + event.point.user_id : '%21*') + '&f%5B%5D=&c%5B%5D=status&c%5B%5D=priority&c%5B%5D=subject&c%5B%5D=author&c%5B%5D=assigned_to&c%5B%5D=start_date&c%5B%5D=due_date&c%5B%5D=spent_hours&c%5B%5D=done_ratio&group_by=');
             }
           }
         }
@@ -64,7 +64,7 @@
       yAxis: {
         min: 0,
         title: {
-          text: '<%=t :hr_columnbar_yaxis_label%>'
+          text: '<%= t :hr_columnbar_yaxis_label %>'
         }
       },
       legend: {
@@ -73,7 +73,7 @@
       tooltip: {
         formatter: function() {
           return '<b>'+ this.x +'</b><br/>'+
-            '<%=t :tasks_label%>: '+ Highcharts.numberFormat(this.y, 0) ;
+            '<%= t :tasks_label %>: '+ Highcharts.numberFormat(this.y, 0) ;
         }
       },
       series: [{
@@ -102,16 +102,16 @@
 <script type="text/javascript">
   $(document).ready(function() {
     serCC = [
-      <% @statusesByAssigneds.group_by(&:id).sort.each do |s, t| %>
+      <%  @statusesByAssigneds.group_by{|k, v| k[:status_id]}.sort.each do |s, t| %>
         {
           issue_status_id: <%= s %>,
           data: [
-            <% t.each do |a| %>
-              {y: <%= a.totalassignedbystatuses.to_i %>},
-            <%end%>
+            <%  @statusesByAssigneds.pluck(:assigned_to_id).uniq.sort.each do |a| %>
+              {y: <%= t.select{|x| x[:assigned_to_id] == a}.count %>},
+            <% end %>
           ]
         },
-      <%end%>
+      <% end %>
     ];
     chartCCB = new Highcharts.Chart({
       chart: {
@@ -125,7 +125,7 @@
         enabled: true
       },
       title: {
-        text: '<%=t :hr_stackedcolumnbar_title_label%>'
+        text: '<%= t :hr_stackedcolumnbar_title_label %>'
       },
       xAxis: {
         categories: catCC
@@ -134,7 +134,7 @@
         reversedStacks: false,
         min: 0,
         title: {
-          text: '<%=t :hr_stackedcolumnbar_yaxis_label%>'
+          text: '<%= t :hr_stackedcolumnbar_yaxis_label %>'
         }
       },
       legend: {
@@ -152,22 +152,22 @@
           cursor: 'pointer',
           events: {
             click: function(event) {
-              window.open('../../projects/<%=@project.identifier%>/issues?set_filter=1&f%5B%5D=status_id&op%5Bstatus_id%5D=%3D&v%5Bstatus_id%5D%5B%5D=' + event.point.issue_status_id + '&f%5B%5D=assigned_to_id&op%5Bassigned_to_id%5D=' + (event.point.user_id > 0 ? '%3D&v%5Bassigned_to_id%5D%5B%5D=' + event.point.user_id : '%21*') + '&f%5B%5D=&c%5B%5D=status&c%5B%5D=priority&c%5B%5D=subject&c%5B%5D=author&c%5B%5D=assigned_to&c%5B%5D=start_date&c%5B%5D=due_date&c%5B%5D=spent_hours&c%5B%5D=done_ratio&group_by=');
+              window.open('../../projects/<%= @project.identifier %>/issues?set_filter=1&f%5B%5D=status_id&op%5Bstatus_id%5D=%3D&v%5Bstatus_id%5D%5B%5D=' + event.point.issue_status_id + '&f%5B%5D=assigned_to_id&op%5Bassigned_to_id%5D=' + (event.point.user_id > 0 ? '%3D&v%5Bassigned_to_id%5D%5B%5D=' + event.point.user_id : '%21*') + '&f%5B%5D=&c%5B%5D=status&c%5B%5D=priority&c%5B%5D=subject&c%5B%5D=author&c%5B%5D=assigned_to&c%5B%5D=start_date&c%5B%5D=due_date&c%5B%5D=spent_hours&c%5B%5D=done_ratio&group_by=');
             }
           },
           stacking: 'normal'
         }
       },
       series: [
-        <% @statusesByAssigneds.group_by(&:id).sort.each do |s, t| %>
+        <%  @statusesByAssigneds.pluck(:status_id, :status_name).uniq.sort.each do |s, t| %>
           {
-            name: '<%= IssueStatus.find(s).name%>',
+            name: '<%= t %>',
             data: []
           },
-        <%end%>
+        <% end %>
       ]
     });
-    refresh_chartCC("All roles"); 
+    refresh_chartCC("All roles");
   });
 </script>
 <!--

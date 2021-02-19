@@ -2,22 +2,22 @@
 
 <% if @issuesSpentHours.count > 0  %>
  <%= render :partial => 'scripts' %>
-<%end%>
+<% end %>
 
 <%= render :partial => '/mc_menu/mcmenu' %>
 
-<div class="central_charts"> 
- <% if @issuesSpentHours.count > 0  %>	
-	  <h2><%=t :time_mgmt_label_title %></h2>
+<div class="central_charts">
+ <% if @issuesSpentHours.count > 0 %>
+	  <h2><%= t :time_mgmt_label_title %></h2>
 	  <div id="containerSpentHours" class="central_chart"></div>
 	  <div id="containerSpentHoursByVersion" class="central_chart"></div>
 	</div>
 
 	<div>
 	<p id="notice"><%= notice %></p>
-  
-  <%else%> 
-   <div id="errorExplanation"><%=t :time_mgmt_error_no_issues_duedate_found_text %></div>
-  <%end%>
+
+  <% else %>
+   <div id="errorExplanation"><%= t :time_mgmt_error_no_issues_duedate_found_text %></div>
+  <% end %>
 
 </div>
