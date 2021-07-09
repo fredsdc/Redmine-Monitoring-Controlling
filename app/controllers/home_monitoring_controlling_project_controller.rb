@@ -18,7 +18,7 @@ class HomeMonitoringControllingProjectController < ApplicationController
     @totalIssues = @all_project_issues.count
 
     #get count of issues by category
-    @issuesbycategory = Tracker.all.map{|t| {
+    @issuesbycategory = Tracker.find(Issue.where(project_id: array_projects_subprojects).pluck(:tracker_id)).map{|t| {
       name: t.name,
       position: t.position,
       totalbycategory: Issue.where(project_id: array_projects_subprojects, tracker_id: t.id).count,
